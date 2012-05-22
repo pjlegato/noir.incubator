@@ -1,8 +1,16 @@
 (ns noir.incubator.middleware
-  "Helpful middleware functions that are incubating")
+  "Helpful middleware functions that are incubating"
+  (require
+   [noir.incubator.logging :as logging] ;; to ensure that logging is configured
+   [clojure.tools.logging :as log]))
 
-(defn wrap-request-loging-with-formatter [handler formatter]
-  "Adds simple loging for requests.  The output shows the current time,  the request method, uri,
+
+;;;
+;;; Logging middleware
+;;;
+
+(defn wrap-request-logging-with-formatter [handler formatter]
+  "Adds simple logging for requests.  The output shows the current time, the request method, uri,
    and total time spent processing the request."
   (fn [{:keys [request-method uri] :as req}]
     (let [start  (System/currentTimeMillis)
@@ -14,10 +22,20 @@
       resp)))
 
 (defn- logformatter [reqmeth status uri totaltime]
-  "Basic logformatter for loging middleware."
+  "Basic logformatter for logging middleware. Writes all log messages to stdout."
   (let [line (format "[%s] %s [Status: %s] %s (%dms)" (java.util.Date.)  reqmeth status uri totaltime)]
     (locking System/out (println line))))
 
-(defn wrap-request-loging [handler]
+(defn- log4j-formatter [reqmeth status uri totaltime]
+  "Log4J-enabled logformatter for logging middleware. Sends all log
+  messages at \"info\" level to the Log4J logging infrastructure."
+  (let [line (format "%s [Status: %s] %s (%dms)" reqmeth status uri totaltime)]
+    (log/info line)))
+
+(defn wrap-request-logging [handler]
   "Provide a default loger with a default logformatter"
-  (wrap-request-loging-with-formatter handler logformatter))
+  (wrap-request-logging-with-formatter handler logformatter))
+
+;;;
+;;; End logging middleware
+;;;
