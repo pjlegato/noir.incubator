@@ -6,3 +6,4 @@ pom.xml
 logs
 .lein-env
 target
+.lein-git-deps
